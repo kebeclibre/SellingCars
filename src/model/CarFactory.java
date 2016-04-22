@@ -1,5 +1,4 @@
 package model;
-package model;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,11 +9,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.List;;
+import java.util.List;
+import java.util.Properties;
+
+import model.enums.CarKeys;;
 
 public class CarFactory {
 	
-	private final String PATH= "src/cars.csv"; 
+	private String PATH= "src/bases/rda.csv";
+	private final String fieldSeparator = ";";
 	
 	private static CarFactory instance;
 	
@@ -33,7 +36,7 @@ public class CarFactory {
 	
 	public List<Car> getSFromFile() {
 		try {
-			return readFrom(new FileInputStream(PATH));
+			return readFrom(new FileInputStream(PATH),";");
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -43,28 +46,35 @@ public class CarFactory {
 	
 	public List<Car> getFromConsole() {
 		//System.out.print("Enter Names sep by space: ");
-		return readFrom(System.in);
+		return readFrom(System.in," ");
 	
 	}
 	
-	public List<Car> readFrom(InputStream in) {
+	public List<Car> readFrom(InputStream in, String fieldseparator) {
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 		List<Car> result = new ArrayList<Car>();
 		try {
 			String line = null;
 			//for (String line = br.readLine(); line != null; line = br.readLine()) {
-			while (null != (line = br.readLine()) && line.length() > 0)  {
-				String[] indiv = line.split(" ");
+			//br.readLine();
+			while (null != (line = br.readLine()) && line.length() > 0)  {			
+				if (line.startsWith(CarKeys.MARK.name())) {line = br.readLine();}
+				String[] indiv = line.split(fieldseparator);
 				Car car = new Car();
-				// fill in the fields
-				String last="";
-				for (byte i = 1; i < indiv.length; i++) {
-					if (i == indiv.length - 1) {
-						last += indiv[i];
-					} else {last += indiv[i]+", "; }
+				int i = 0;
+				for (Object prop: CarKeys.values()) {
+					String add;
+					if (i >= indiv.length || null == indiv[i]){
+						add = "unknown";
+					} else { add = indiv[i]; }
+					car.getProp().put(prop,add);
+					i++;
 				}
-				//last = last.substring(0, last.length()-2);
-				// fill in here to
+				
+//				Improvment ? CONTROL whether value for field is auth, if not, check other field, if not, throw except
+//				for (Object prop : CarKeys.values())
+//					if 
+
 				result.add(car);
 				
 			}
@@ -85,9 +95,16 @@ public class CarFactory {
 			raf.seek(offset);
 			//raf.writeUTF("\n");
 			for (Car car : cars) {
-				//raf.writeUTF("\n"+stud.getFirstname()+" "+stud.getLastname());
+				StringBuffer sb = new StringBuffer();
+				for (CarKeys key : CarKeys.values()) {
+					sb.append(car.getProp().get(key)+fieldSeparator);
+				}
+				sb.deleteCharAt(sb.length()-1);
+				raf.writeUTF("\n"+sb.toString());
 			}
+
 			raf.close();
+			
 			
 			
 		} catch (FileNotFoundException e) {

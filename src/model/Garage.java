@@ -6,7 +6,19 @@ import java.util.List;
 public class Garage {
 	private String name;
 	private List<Car> stock = new ArrayList<Car>();
-	private final String PATH = "src/cars.csv";
+	private CarFactory usine = CarFactory.getInstance();
+	
+	public List<Car> getStock() {
+		return stock;
+	}
+
+	public void setStock(List<Car> stock) {
+		this.stock = stock;
+	}
+
+	public CarFactory getUsine() {
+		return usine;
+	}
 
 	
 
